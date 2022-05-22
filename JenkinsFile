@@ -1,0 +1,39 @@
+@Library('nextstep_libary') _
+
+pipeline {
+    agent { label 'RCCBaseAgent' }
+    options {
+        timestamps()
+        buildDiscarder(logRotator(numToKeepStr: '30'))
+        ansiColor('xterm')
+        skipDefaultCheckout()
+        disableConcurrentBuilds()
+    }
+    stages {
+        stage ("Setup") {
+            steps {
+                script {
+                    radcomEnvSetup.initEnv()
+                    checkout scm
+                }
+            }
+        }
+        stage ("Test") {
+            steps {
+                script {
+                    echo "Test rcc-library"
+                    
+                    // throw new Exception("[ERROR] Test exception")
+                }
+            }
+        }
+    }
+    post {
+        always {
+            script {
+                radcomCommon.saveConsoleLogToFile()
+                radcomNotifications.sendEmailNotification(to: 'yoram.michaeli@radcom.com', attachmentsPattern: "**/*.log,**/*.info.txt")
+            }
+        }
+    }
+}
